@@ -18,24 +18,19 @@ public class Normal extends Popularidad {
 
     @Override
     public void reproducir(Cancion cancion) {
-        if(this.superoLasPrimerasReproducciones(cancion) || this.vuelveASuperarReproducciones(cancion)) {
+        if(this.superaReproducciones(cancion)) {
             cancion.setEstado(new EnAuge());
         }
     }
 
-    private Boolean superoLasPrimerasReproducciones(Cancion cancion) {
-        return cancion.getCantReproducciones() == 0 && cancion.getCantReproducciones() > cantMaxReproduccionesTendenciaNormal;
-    }
-
-    private Boolean vuelveASuperarReproducciones(Cancion cancion) {
-        return cancion.getCantReproducciones() != 0
-                && (cancion.getCantReproducciones() - this.cantReproduccionesIniciales) > cantMaxReproduccionesTendenciaNormal
+    private Boolean superaReproducciones(Cancion cancion) {
+        return (cancion.getCantReproducciones() - this.cantReproduccionesIniciales) > cantMaxReproduccionesTendenciaNormal
                 && ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) < cantHorasClaveParaTrascender;
     }
 
     @Override
     protected String icono() {
-        return Icono.textoDelIcono(Icono.MUSICAL_NOTE);
+        return Icono.MUSICAL_NOTE.texto();
     }
 
     @Override

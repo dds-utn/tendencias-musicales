@@ -32,7 +32,7 @@ public class EnAuge extends Popularidad {
 
     @Override
     protected String icono() {
-        return Icono.textoDelIcono(Icono.ROCKET);
+        return Icono.ROCKET.texto();
     }
 
     @Override

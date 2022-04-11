@@ -22,7 +22,7 @@ public class EnTendencia extends Popularidad {
 
     @Override
     protected String icono() {
-        return Icono.textoDelIcono(Icono.FIRE);
+        return Icono.FIRE.texto();
     }
 
     @Override
