@@ -18,23 +18,24 @@ public class Cancion {
 
     @Getter private Integer cantReproducciones;
 
-    @Setter private Popularidad estado;
+    @Setter private Popularidad popularidad;
 
     @Getter private LocalDateTime ultVezEscuchada;
 
     public Cancion() {
         this.cantReproducciones = 0;
-        this.estado = new Normal(this);
+        this.popularidad = new Normal(this);
     }
 
     public String detalleCompleto() {
-        return this.estado.detalle(this);
+        return this.popularidad.detalle(this);
     }
 
     private void reproducir() {
         this.cantReproducciones++;
-        this.estado.reproducir(this);
         this.ultVezEscuchada = LocalDateTime.now();
+        this.popularidad.reproducir(this);
+        //this.ultVezEscuchada = LocalDateTime.now();
     }
 
     public String serEscuchada() {

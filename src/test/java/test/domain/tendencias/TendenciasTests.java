@@ -34,8 +34,8 @@ public class TendenciasTests {
         Normal.cantMaxReproduccionesTendenciaNormal = 2;
         Normal.cantHorasClaveParaTrascender = 24;
 
-        EnAuge.cantMaximaReproduccionesEnAuge = 4;
-        EnAuge.cantHorasMaxSinSerEscuchada = 72;
+        EnAuge.cantMaxReproduccionesenAuge = 4;
+        EnAuge.horasDeToleranciaEnAuge = 72;
         EnAuge.cantHorasMinParaTrascender = 48;
 
         EnTendencia.cantHorasSinEscucharParaBajarPopularidad = 24;
@@ -65,18 +65,16 @@ public class TendenciasTests {
     @Test
     @DisplayName("The Scientist baja del auge por no ser reproducida")
     public void cancionVuelveASerNormalPorBajasReproduccionesTest() {
-        EnAuge.cantHorasMaxSinSerEscuchada = 0;
-        EnAuge.cantMaximaReproduccionesEnAuge = 5;
+        EnAuge.horasDeToleranciaEnAuge = 0;
+        EnAuge.cantMaxReproduccionesenAuge = 5;
 
         cancion.serEscuchada();
         cancion.serEscuchada();
 
         Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
-
         Assertions.assertTrue(estaEnAuge);
 
         Boolean tienePopularidadNormal = cancion.serEscuchada().contains(Normal.armarLeyendaPara(this.cancion));
-
         Assertions.assertTrue(tienePopularidadNormal);
     }
 
@@ -85,31 +83,46 @@ public class TendenciasTests {
     public void cancionMuestraDetalleEnTendenciaTest() {
         cancion.serEscuchada();
         cancion.serEscuchada();
+
+        /** A LA TERCER REPRODUCCIÓN DEBERÍA PASAR A ESTAR EN AUGE */
+        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
+        Assertions.assertTrue(estaEnAuge);
+
+        /** A LA OCTAVA REPRODUCCIÓN (TOTAL), Ó QUINTA DENTRO DE 'EN AUGE', DEBERÍA PASAR A ESTAR EN TENDENCIA */
+        cancion.serEscuchada();
+        cancion.serEscuchada();
         cancion.serEscuchada();
         cancion.serEscuchada();
 
         Boolean esTendencia = cancion.serEscuchada().contains(EnTendencia.armarLeyendaPara(this.cancion));
 
         Assertions.assertTrue(esTendencia);
-        Assertions.assertEquals(5, this.cancion.getCantReproducciones());
+        Assertions.assertEquals(8, this.cancion.getCantReproducciones());
     }
 
     @Test
     @DisplayName("The Scientist era tendencia pero vuelve a ser normal por no ser escuchada en las últimas horas")
     public void cancionTendenciaVuelveASerNormal() {
         EnTendencia.cantHorasSinEscucharParaBajarPopularidad = 0;
+
+        cancion.serEscuchada();
+        cancion.serEscuchada();
+
+        /** A LA TERCER REPRODUCCIÓN DEBERÍA PASAR A ESTAR EN AUGE */
+        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
+        Assertions.assertTrue(estaEnAuge);
+
+        /** A LA OCTAVA REPRODUCCIÓN (TOTAL), Ó QUINTA DENTRO DE 'EN AUGE', DEBERÍA PASAR A ESTAR EN TENDENCIA */
         cancion.serEscuchada();
         cancion.serEscuchada();
         cancion.serEscuchada();
         cancion.serEscuchada();
 
         Boolean esTendencia = cancion.serEscuchada().contains(EnTendencia.armarLeyendaPara(this.cancion));
-
         Assertions.assertTrue(esTendencia);
 
+        /** A LA NOVENA REPRODUCCIÓN (TOTAL), Ó PRIMERA DENTRO DE 'EN TENDENCIA', DEBERÍA VOLVER A LA NORMALIDAD */
         Boolean tienePopularidadNormal = cancion.serEscuchada().contains(Normal.armarLeyendaPara(this.cancion));
-
         Assertions.assertTrue(tienePopularidadNormal);
-        Assertions.assertEquals(6, this.cancion.getCantReproducciones());
     }
 }

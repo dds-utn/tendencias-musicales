@@ -7,27 +7,38 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 public class EnAuge extends Popularidad {
-    public static Integer cantMaximaReproduccionesEnAuge = 50000;
+    public static Integer cantMaxReproduccionesenAuge = 50000;
     public static Integer cantHorasMinParaTrascender = 48;
-    public static Integer cantHorasMaxSinSerEscuchada = 72;
+    public static Integer horasDeToleranciaEnAuge = 72;
+    private Integer cantReproduccionesIniciales;
+    private LocalDateTime fechaHoraIngresoEnAuge;
+
+    public EnAuge(Cancion cancion) {
+        this.cantReproduccionesIniciales = cancion.getCantReproducciones();
+        this.fechaHoraIngresoEnAuge = LocalDateTime.now();
+    }
 
     @Override
     public void reproducir(Cancion cancion) {
         if(this.superaReproduccionesEnTiempoRecord(cancion)) {
-            cancion.setEstado(new EnTendencia());
+            cancion.setPopularidad(new EnTendencia());
         }
         else if (this.fuePocoEscuchada(cancion)) {
-            cancion.setEstado(new Normal(cancion));
+            cancion.setPopularidad(new Normal(cancion));
         }
     }
 
     private Boolean fuePocoEscuchada(Cancion cancion) {
-        return ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) >= cantHorasMaxSinSerEscuchada;
+        return ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) >= horasDeToleranciaEnAuge;
     }
 
     private Boolean superaReproduccionesEnTiempoRecord(Cancion cancion) {
-        return cancion.getCantReproducciones() > cantMaximaReproduccionesEnAuge
-                && ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) < cantHorasMinParaTrascender;
+        return this.cantReproduccionesEnEstaPopularidad(cancion) > cantMaxReproduccionesenAuge
+                && ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), this.fechaHoraIngresoEnAuge) < cantHorasMinParaTrascender;
+    }
+
+    private Integer cantReproduccionesEnEstaPopularidad(Cancion cancion) {
+        return cancion.getCantReproducciones() - this.cantReproduccionesIniciales;
     }
 
     @Override

@@ -12,7 +12,7 @@ public class EnTendencia extends Popularidad {
     @Override
     public void reproducir(Cancion cancion) {
         if(this.bajoPopularidadDrasticamente(cancion)) {
-            cancion.setEstado(new Normal(cancion));
+            cancion.setPopularidad(new Normal(cancion));
         }
     }
 

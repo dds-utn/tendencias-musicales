@@ -10,22 +10,28 @@ public class Normal extends Popularidad {
     public static Integer cantMaxReproduccionesTendenciaNormal = 100;
     public static Integer cantHorasClaveParaTrascender = 24;
     private Integer cantReproduccionesIniciales;
+    private LocalDateTime fechaHoraIngresoEnNormal;
 
 
     public Normal(Cancion cancion) {
         this.cantReproduccionesIniciales = cancion.getCantReproducciones();
+        this.fechaHoraIngresoEnNormal = LocalDateTime.now();
     }
 
     @Override
     public void reproducir(Cancion cancion) {
         if(this.superaReproducciones(cancion)) {
-            cancion.setEstado(new EnAuge());
+            cancion.setPopularidad(new EnAuge(cancion));
         }
     }
 
     private Boolean superaReproducciones(Cancion cancion) {
-        return (cancion.getCantReproducciones() - this.cantReproduccionesIniciales) > cantMaxReproduccionesTendenciaNormal
-                && ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) < cantHorasClaveParaTrascender;
+        return this.cantReproduccionesEnEstaPopularidad(cancion) > cantMaxReproduccionesTendenciaNormal
+                && ChronoUnit.HOURS.between(this.fechaHoraIngresoEnNormal, cancion.getUltVezEscuchada()) < cantHorasClaveParaTrascender;
+    }
+
+    private Integer cantReproduccionesEnEstaPopularidad(Cancion cancion) {
+        return cancion.getCantReproducciones() - this.cantReproduccionesIniciales;
     }
 
     @Override
