@@ -35,7 +35,6 @@ public class Cancion {
         this.cantReproducciones++;
         this.ultVezEscuchada = LocalDateTime.now();
         this.popularidad.reproducir(this);
-        //this.ultVezEscuchada = LocalDateTime.now();
     }
 
     public String serEscuchada() {
