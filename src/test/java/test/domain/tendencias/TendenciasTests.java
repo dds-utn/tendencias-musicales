@@ -11,6 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class TendenciasTests {
     private Cancion cancion;
     private Artista artista;
@@ -32,97 +35,118 @@ public class TendenciasTests {
         this.cancion.setAlbum(this.album);
 
         Normal.cantMaxReproduccionesTendenciaNormal = 2;
-        Normal.cantHorasClaveParaTrascender = 24;
-
-        EnAuge.cantMaxReproduccionesenAuge = 4;
-        EnAuge.horasDeToleranciaEnAuge = 72;
-        EnAuge.cantHorasMinParaTrascender = 48;
-
+        EnAuge.cantMaxReproduccionesenAuge = 3;
+        EnAuge.cantMaxLikesEsperados = 3;
+        EnAuge.cantMaxDislikesSoportados = 5;
         EnTendencia.cantHorasSinEscucharParaBajarPopularidad = 24;
     }
 
     @Test
-    @DisplayName("The Scientist recién se lanza (tiene popularidad normal)")
+    @DisplayName("(Normal) The Scientist recién se lanza (tiene popularidad normal)")
     public void cancionMuestraDetalleDeTendenciaNormal() {
-        Boolean tienePopularidadNormal = cancion.serEscuchada().contains(Normal.armarLeyendaPara(this.cancion));
+        cancion.reproducir();
+        String detalle = cancion.detalleCompleto();
 
-        Assertions.assertTrue(tienePopularidadNormal);
+        Assertions.assertTrue(detalle.contains(Normal.armarLeyendaPara(this.cancion)));
         Assertions.assertEquals(1, this.cancion.getCantReproducciones());
     }
 
     @Test
-    @DisplayName("The Scientist está en auge por superar el mínimo de reproducciones esperadas")
+    @DisplayName("(Normal -> Auge) The Scientist está en auge por superar el mínimo de reproducciones esperadas")
     public void cancionMuestraDetalleEnAugeTest() {
-        cancion.serEscuchada();
-        cancion.serEscuchada();
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
 
-        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
-
-        Assertions.assertTrue(estaEnAuge);
+        Assertions.assertTrue(cancion.detalleCompleto().contains(EnAuge.armarLeyendaPara(this.cancion)));
         Assertions.assertEquals(3, this.cancion.getCantReproducciones());
     }
 
     @Test
-    @DisplayName("The Scientist baja del auge por no ser reproducida")
-    public void cancionVuelveASerNormalPorBajasReproduccionesTest() {
-        EnAuge.horasDeToleranciaEnAuge = 0;
-        EnAuge.cantMaxReproduccionesenAuge = 5;
+    @DisplayName("(Auge -> Normal) The Scientist está en auge pero vuelve a ser Normal por muchos dislikes")
+    public void cancionVuelveANormalPorDislikes() {
+        EnAuge.cantMaxDislikesSoportados = 5;
 
-        cancion.serEscuchada();
-        cancion.serEscuchada();
+        /** A LA TERCER REPRODUCCIÓN DEBERÍA PASAR A ESTAR EN AUGE */
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
 
-        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(estaEnAuge);
+        Assertions.assertEquals(EnAuge.class.getName(), cancion.getPopularidad().getClass().getName());
 
-        Boolean tienePopularidadNormal = cancion.serEscuchada().contains(Normal.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(tienePopularidadNormal);
+        /** LUEGO DE RECIBIR 6 DISLIKES, VUELVE A SER NORMAL */
+        cancion.recibirDislike();
+        cancion.recibirDislike();
+        cancion.recibirDislike();
+        cancion.recibirDislike();
+        cancion.recibirDislike();
+        cancion.recibirDislike();
+
+        cancion.reproducir();
+
+        Assertions.assertEquals(Normal.class.getName(), cancion.getPopularidad().getClass().getName());
     }
 
     @Test
-    @DisplayName("The Scientist es tendencia por record de reproducciones en poco tiempo")
+    @DisplayName("(Auge -> Tendencia) The Scientist es tendencia por record de reproducciones y likes")
     public void cancionMuestraDetalleEnTendenciaTest() {
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-
         /** A LA TERCER REPRODUCCIÓN DEBERÍA PASAR A ESTAR EN AUGE */
-        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(estaEnAuge);
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
 
-        /** A LA OCTAVA REPRODUCCIÓN (TOTAL), Ó QUINTA DENTRO DE 'EN AUGE', DEBERÍA PASAR A ESTAR EN TENDENCIA */
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-        cancion.serEscuchada();
+        Assertions.assertTrue(cancion.detalleCompleto().contains(EnAuge.armarLeyendaPara(this.cancion)));
 
-        Boolean esTendencia = cancion.serEscuchada().contains(EnTendencia.armarLeyendaPara(this.cancion));
+        /** A LA SEPTIMA REPRODUCCIÓN (TOTAL) + 4 Likes DEBERÍA PASAR A ESTAR EN TENDENCIA */
+        cancion.recibirLike();
+        cancion.recibirLike();
+        cancion.recibirLike();
+        cancion.recibirLike();
+
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
+
+        Boolean esTendencia = cancion.detalleCompleto().contains(EnTendencia.armarLeyendaPara(this.cancion));
 
         Assertions.assertTrue(esTendencia);
-        Assertions.assertEquals(8, this.cancion.getCantReproducciones());
+        Assertions.assertEquals(7, this.cancion.getCantReproducciones());
     }
 
     @Test
-    @DisplayName("The Scientist era tendencia pero vuelve a ser normal por no ser escuchada en las últimas horas")
+    @DisplayName("(Tendencia -> Normal) The Scientist era tendencia pero vuelve a ser normal por no ser escuchada en las últimas horas")
     public void cancionTendenciaVuelveASerNormal() {
-        EnTendencia.cantHorasSinEscucharParaBajarPopularidad = 0;
-
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-
+        EnTendencia.cantHorasSinEscucharParaBajarPopularidad = 24;
         /** A LA TERCER REPRODUCCIÓN DEBERÍA PASAR A ESTAR EN AUGE */
-        Boolean estaEnAuge = cancion.serEscuchada().contains(EnAuge.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(estaEnAuge);
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
 
-        /** A LA OCTAVA REPRODUCCIÓN (TOTAL), Ó QUINTA DENTRO DE 'EN AUGE', DEBERÍA PASAR A ESTAR EN TENDENCIA */
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-        cancion.serEscuchada();
-        cancion.serEscuchada();
+        Assertions.assertEquals(EnAuge.class.getName(), cancion.getPopularidad().getClass().getName());
 
-        Boolean esTendencia = cancion.serEscuchada().contains(EnTendencia.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(esTendencia);
+        /** A LA SEPTIMA REPRODUCCIÓN (TOTAL) + 4 Likes DEBERÍA PASAR A ESTAR EN TENDENCIA */
+        cancion.recibirLike();
+        cancion.recibirLike();
+        cancion.recibirLike();
+        cancion.recibirLike();
 
-        /** A LA NOVENA REPRODUCCIÓN (TOTAL), Ó PRIMERA DENTRO DE 'EN TENDENCIA', DEBERÍA VOLVER A LA NORMALIDAD */
-        Boolean tienePopularidadNormal = cancion.serEscuchada().contains(Normal.armarLeyendaPara(this.cancion));
-        Assertions.assertTrue(tienePopularidadNormal);
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
+        cancion.reproducir();
+
+        Assertions.assertEquals(EnTendencia.class.getName(), cancion.getPopularidad().getClass().getName());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime fechaFutura = LocalDateTime.parse("2030-04-20 12:00:00", formatter);
+
+        EnTendencia estadoActualCancion = (EnTendencia) cancion.getPopularidad();
+        estadoActualCancion.setFechaAComparar(fechaFutura);
+
+        /** A LA NOVENA OCTAVA REPRODUCCIÓN (TOTAL), Ó PRIMERA DENTRO DE 'EN TENDENCIA', DEBERÍA VOLVER A LA NORMALIDAD */
+        cancion.reproducir();
+
+        Assertions.assertEquals(Normal.class.getName(), cancion.getPopularidad().getClass().getName());
     }
 }

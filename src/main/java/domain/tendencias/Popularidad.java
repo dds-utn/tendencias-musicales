@@ -14,4 +14,8 @@ public abstract class Popularidad {
         titulo += this.leyenda(cancion);
         return titulo;
     }
+
+    public void recibirDislike() {
+
+    }
 }

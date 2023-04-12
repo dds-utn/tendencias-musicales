@@ -3,10 +3,17 @@ package test.domain.tendencias;
 import domain.catalogo.Album;
 import domain.catalogo.Artista;
 import domain.catalogo.Cancion;
+import domain.tendencias.EnAuge;
+import domain.tendencias.Normal;
 
 public class TendenciasMainTest {
 
     public static void main(String[] args) {
+        //VALORES DE PRUEBA
+        Normal.cantMaxReproduccionesTendenciaNormal = 2;
+        EnAuge.cantMaxLikesEsperados = 3;
+        EnAuge.cantMaxReproduccionesenAuge = 3;
+
         Artista coldplay = new Artista();
         coldplay.setNombre("Coldplay");
 
@@ -20,13 +27,24 @@ public class TendenciasMainTest {
         theScientist.setAlbum(aRushOfBloodToTheHead);
         theScientist.setArtista(coldplay);
 
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
-        System.out.println(theScientist.serEscuchada());
+        reproducirYMostrarDetalle(theScientist);
+        reproducirYMostrarDetalle(theScientist);
+        reproducirYMostrarDetalle(theScientist);
+
+        theScientist.recibirLike();
+        theScientist.recibirLike();
+        theScientist.recibirLike();
+        theScientist.recibirLike();
+
+        reproducirYMostrarDetalle(theScientist);
+        reproducirYMostrarDetalle(theScientist);
+        reproducirYMostrarDetalle(theScientist);
+        reproducirYMostrarDetalle(theScientist);
+
+    }
+
+    private static void reproducirYMostrarDetalle(Cancion cancion) {
+        cancion.reproducir();
+        System.out.println(cancion.detalleCompleto());
     }
 }

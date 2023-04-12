@@ -3,42 +3,47 @@ package domain.tendencias;
 import domain.catalogo.Cancion;
 import domain.helpers.Icono;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
 public class EnAuge extends Popularidad {
     public static Integer cantMaxReproduccionesenAuge = 50000;
-    public static Integer cantHorasMinParaTrascender = 48;
-    public static Integer horasDeToleranciaEnAuge = 72;
+    public static Integer cantMaxLikesEsperados = 20000;
+    public static Integer cantMaxDislikesSoportados = 5000;
     private Integer cantReproduccionesIniciales;
-    private LocalDateTime fechaHoraIngresoEnAuge;
+    private Integer cantDislikes;
 
-    public EnAuge(Cancion cancion) {
-        this.cantReproduccionesIniciales = cancion.getCantReproducciones();
-        this.fechaHoraIngresoEnAuge = LocalDateTime.now();
+    public EnAuge(int cantReproducciones) {
+        this.cantReproduccionesIniciales = cantReproducciones;
+        this.cantDislikes = 0;
     }
 
     @Override
     public void reproducir(Cancion cancion) {
-        if(this.superaReproduccionesEnTiempoRecord(cancion)) {
+        if(this.superaReproducciones(cancion) && this.tieneMasDeLosLikesEsperados(cancion)) {
             cancion.setPopularidad(new EnTendencia());
         }
-        else if (this.fuePocoEscuchada(cancion)) {
-            cancion.setPopularidad(new Normal(cancion));
+        else if(this.superaCantDislikes()) {
+            cancion.setPopularidad(new Normal(cancion.getCantReproducciones()));
         }
     }
 
-    private Boolean fuePocoEscuchada(Cancion cancion) {
-        return ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), LocalDateTime.now()) >= horasDeToleranciaEnAuge;
+    private Boolean superaCantDislikes() {
+        return this.cantDislikes > cantMaxDislikesSoportados;
     }
 
-    private Boolean superaReproduccionesEnTiempoRecord(Cancion cancion) {
-        return this.cantReproduccionesEnEstaPopularidad(cancion) > cantMaxReproduccionesenAuge
-                && ChronoUnit.HOURS.between(cancion.getUltVezEscuchada(), this.fechaHoraIngresoEnAuge) < cantHorasMinParaTrascender;
+    private Boolean tieneMasDeLosLikesEsperados(Cancion cancion) {
+        return cancion.getCantLikes() > cantMaxLikesEsperados;
+    }
+
+    private Boolean superaReproducciones(Cancion cancion) {
+        return this.cantReproduccionesEnEstaPopularidad(cancion) > cantMaxReproduccionesenAuge;
     }
 
     private Integer cantReproduccionesEnEstaPopularidad(Cancion cancion) {
         return cancion.getCantReproducciones() - this.cantReproduccionesIniciales;
+    }
+
+    @Override
+    public void recibirDislike() {
+        this.cantDislikes++;
     }
 
     @Override

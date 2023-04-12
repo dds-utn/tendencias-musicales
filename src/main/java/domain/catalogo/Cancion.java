@@ -16,25 +16,40 @@ public class Cancion {
 
     @Setter @Getter private Integer anio;
 
+    @Setter @Getter private Integer cantLikes;
+
+    @Setter @Getter private Integer cantDislikes;
+
     @Getter private Integer cantReproducciones;
 
-    @Setter private Popularidad popularidad;
+    @Getter @Setter private Popularidad popularidad;
 
     @Getter private LocalDateTime ultVezEscuchada;
 
     public Cancion() {
         this.cantReproducciones = 0;
-        this.popularidad = new Normal(this);
+        this.cantLikes = 0;
+        this.cantDislikes = 0;
+        this.popularidad = new Normal(this.cantReproducciones);
     }
 
     public String detalleCompleto() {
         return this.popularidad.detalle(this);
     }
 
-    private void reproducir() {
+    public void reproducir() {
         this.cantReproducciones++;
-        this.ultVezEscuchada = LocalDateTime.now();
         this.popularidad.reproducir(this);
+        this.ultVezEscuchada = LocalDateTime.now();
+    }
+
+    public void recibirLike() {
+        this.cantLikes++;
+    }
+
+    public void recibirDislike() {
+        this.cantDislikes++;
+        this.popularidad.recibirDislike();
     }
 
     public String serEscuchada() {
